@@ -45,21 +45,22 @@ export default function FlywheelStackRadial() {
   const [orbitEnabled, setOrbitEnabled] = useState(false);
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      setVisibleCount((previous) => {
-        if (previous >= STAGES.length) {
-          window.clearInterval(id);
-          return previous;
-        }
-        return previous + 1;
-      });
-    }, 820);
+    const id = window.setTimeout(() => {
+      if (visibleCount < STAGES.length) {
+        setVisibleCount((previous) => Math.min(previous + 1, STAGES.length));
+        return;
+      }
 
-    return () => window.clearInterval(id);
-  }, []);
+      setOrbitEnabled(false);
+      setVisibleCount(1);
+    }, visibleCount < STAGES.length ? 820 : 2600);
+
+    return () => window.clearTimeout(id);
+  }, [visibleCount]);
 
   useEffect(() => {
     if (visibleCount < STAGES.length) {
+      setOrbitEnabled(false);
       return undefined;
     }
 
