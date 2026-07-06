@@ -1,8 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { FlywheelInline } from "@/components/flywheel/flywheel-scene";
+import { EdgeFlowInline } from "@/components/flywheel/flywheel-scene";
+import FlywheelStackRadial from "@/components/flywheel/flywheel-stack-radial";
+import PhysicalWorldStackMap from "@/components/market-map/physical-world-stack-map";
 import UsvPageShell from "@/components/site/usv-page-shell";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 
@@ -40,16 +41,7 @@ export default async function BlogPostPage({ params }) {
         </header>
 
         <figure className="usv-article-media usv-article-media--lead usv-article-flow">
-          <Image
-            src="/assets/article-water.png"
-            alt="Ocean edge concept visual"
-            width={840}
-            height={560}
-            priority
-          />
-          {post.mediaNotes?.first ? (
-            <figcaption className="usv-media-caption">{post.mediaNotes.first}</figcaption>
-          ) : null}
+          <EdgeFlowInline />
         </figure>
 
         <section className="usv-article-section usv-article-flow">
@@ -57,10 +49,7 @@ export default async function BlogPostPage({ params }) {
             <div key={index}>
               {index === 8 ? (
                 <figure className="usv-article-media">
-                  <FlywheelInline />
-                  {post.mediaNotes?.second ? (
-                    <figcaption className="usv-media-caption">{post.mediaNotes.second}</figcaption>
-                  ) : null}
+                  <FlywheelStackRadial />
                 </figure>
               ) : null}
               <p>{paragraph}</p>
@@ -69,15 +58,7 @@ export default async function BlogPostPage({ params }) {
         </section>
 
         <figure className="usv-article-media usv-article-flow">
-          <Image
-            src="/assets/article-market-map.png"
-            alt="Physical world stack market map"
-            width={857}
-            height={593}
-          />
-          {post.mediaNotes?.third ? (
-            <figcaption className="usv-media-caption">{post.mediaNotes.third}</figcaption>
-          ) : null}
+          <PhysicalWorldStackMap />
         </figure>
       </article>
     </UsvPageShell>

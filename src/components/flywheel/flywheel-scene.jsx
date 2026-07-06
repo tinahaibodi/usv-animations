@@ -71,6 +71,8 @@ const T_TITLE = 0.2;
 const T_STAGE = [1.8, 3.3, 4.8, 6.3];
 const T_ROT = 8.0;
 const DUR = 16;
+const EDGE_W = 1184;
+const EDGE_H = 792;
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 const seg = (t, start, dur) => clamp((t - start) / dur, 0, 1);
@@ -406,6 +408,76 @@ function useLoopingTime(isPlaying, initialTime = 0) {
   }, [isPlaying]);
 
   return [time, setTime];
+}
+
+function EdgeFlowGraphic({ markup, stageRef }) {
+  if (!markup) return null;
+  return (
+    <div
+      ref={stageRef}
+      className="edgeflow-svg-stage"
+      role="img"
+      aria-label="Data flowing across the edge illustration"
+      dangerouslySetInnerHTML={{ __html: markup }}
+    />
+  );
+}
+
+function EdgeFlowViewport() {
+  const viewportRef = useRef(null);
+  const stageRef = useRef(null);
+  const [scale, setScale] = useState(1);
+  const [markup, setMarkup] = useState("");
+
+  useEffect(() => {
+    if (!viewportRef.current) return;
+
+    const recalc = () => {
+      const width = viewportRef.current?.clientWidth ?? EDGE_W;
+      setScale(Math.min(1, width / EDGE_W));
+    };
+
+    recalc();
+    const observer = new ResizeObserver(recalc);
+    observer.observe(viewportRef.current);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadSvg = async () => {
+      const response = await fetch("/assets/Cliff-Water.svg");
+      const svgText = await response.text();
+      if (isActive) setMarkup(svgText);
+    };
+
+    loadSvg().catch(() => {
+      if (isActive) setMarkup("");
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  return (
+    <div className="edgeflow-viewport" ref={viewportRef}>
+      <div className="edgeflow-canvas" style={{ height: `${EDGE_H * scale}px` }}>
+        <div
+          className="edgeflow-canvas-inner"
+          style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}
+        >
+          <EdgeFlowGraphic markup={markup} stageRef={stageRef} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function EdgeFlowInline() {
+  return <EdgeFlowViewport />;
 }
 
 export function FlywheelInline({ compact = false }) {

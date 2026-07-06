@@ -226,6 +226,12 @@ a {
   display: block;
 }
 
+.usv-green-panel {
+  width: 100%;
+  aspect-ratio: 1184 / 792;
+  background: #34a853;
+}
+
 .usv-article-section {
   margin-top: 0;
 }
@@ -268,6 +274,37 @@ a {
   inset: 0;
   width: 1920px;
   height: 1080px;
+}
+
+.edgeflow-viewport {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  overflow: hidden;
+  background: #fffcfc;
+}
+
+.edgeflow-canvas {
+  position: relative;
+  width: 100%;
+}
+
+.edgeflow-canvas-inner {
+  position: absolute;
+  inset: 0;
+  width: 1184px;
+  height: 792px;
+}
+
+.edgeflow-svg-stage {
+  width: 100%;
+  height: 100%;
+}
+
+.edgeflow-svg-stage svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .guides {
