@@ -71,8 +71,8 @@ const T_TITLE = 0.2;
 const T_STAGE = [1.8, 3.3, 4.8, 6.3];
 const T_ROT = 8.0;
 const DUR = 16;
-const EDGE_W = 1184;
-const EDGE_H = 792;
+const EDGE_W = 1040;
+const EDGE_H = 584;
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 const seg = (t, start, dur) => clamp((t - start) / dur, 0, 1);

@@ -57,7 +57,7 @@ export default async function BlogPostPage({ params }) {
           ))}
         </section>
 
-        <figure className="usv-article-media usv-article-flow">
+        <figure className="usv-article-media usv-article-media--market-map usv-article-flow">
           <PhysicalWorldStackMap />
         </figure>
       </article>

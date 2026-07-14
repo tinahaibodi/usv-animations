@@ -1,40 +1,92 @@
-USV Animations is a [Next.js](https://nextjs.org) app for building and exporting animation scenes for editorial/article use.
+# USV Animations
 
-## Getting Started
+Next.js app for building, previewing, and exporting USV editorial animations. The primary article is **Data at the Edge** at `/writing/data-at-the-edge`.
 
-Run the development server:
+## Quick start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the animation studio.
+| Route | Purpose |
+|-------|---------|
+| `/writing` | Blog index |
+| `/writing/data-at-the-edge` | Full article with three embedded diagrams |
+| `/studio` | Flywheel animation studio with SVG/PNG export |
 
-## Current scene
+## Article diagrams
 
-The first scene is the **Physical World Flywheel** and lives in:
+Three visuals appear in order on the article page:
 
-- `src/components/flywheel/flywheel-scene.jsx`
+1. **Edge flow** — `EdgeFlowInline` loads `public/assets/Cliff-Water.svg` with responsive scaling.
+2. **Physical World Flywheel** — `FlywheelStackRadial` renders a looping SVG animation (1184×792).
+3. **Physical World Stack market map** — `PhysicalWorldStackMap` is a React/CSS stack diagram (1040×584 slot).
 
-This was adapted from your `flywheel-scene.jsx` source and wired into the home page.
+## Reusable components
+
+Import from barrel files:
+
+```jsx
+import { EdgeFlowInline, FlywheelStackRadial, FlywheelInline, FlywheelStudio } from "@/components/flywheel";
+import { PhysicalWorldStackMap } from "@/components/market-map";
+```
+
+| Component | File | Use case |
+|-----------|------|----------|
+| `EdgeFlowInline` | `flywheel/flywheel-scene.jsx` | Animated cliff/water SVG for article lead |
+| `FlywheelStackRadial` | `flywheel/flywheel-stack-radial.js` | Article flywheel with staged ring reveal |
+| `FlywheelInline` | `flywheel/flywheel-scene.jsx` | Compact auto-playing concentric flywheel |
+| `FlywheelStudio` | `flywheel/flywheel-scene.jsx` | Full studio UI at `/studio` with export |
+| `PhysicalWorldStackMap` | `market-map/physical-world-stack-map.jsx` | Green stack market map |
+
+See `docs/COMPONENTS.md` for implementation details.
+
+## Assets
+
+Vector and raster files live in `public/assets/`. See `public/assets/README.md` for the catalog.
+
+**Source vectors for remixing:**
+
+- `data-edge-base.svg` — cliff/edge base art
+- `USV-Illustration.svg` — full illustration frame
+- `Cliff-Water-static.svg` — edge flow without animation
 
 ## Export workflow
 
-Use the controls below the animation preview:
+Open `/studio` to scrub the concentric flywheel timeline and export:
 
-- **Play / Pause** to stop at an exact moment
-- **Time slider** to scrub frame-by-frame
-- **Export SVG** for vector output (best for article layouts)
-- **Export PNG** for a raster frame at the current timestamp
+- **Export SVG** — vector frame at current time
+- **Export PNG** — raster frame at current time
 
-## Next Steps
+For WordPress or external CMS embeds, use snippets in `public/wordpress-embeds/`.
 
-- Add additional scenes in `src/components/`
-- Add JSON scene metadata for article pipeline automation
-- Add batch frame export (image sequence) for GIF/video tooling
+## Project structure
+
+```
+src/
+├── app/
+│   ├── writing/          # Blog index + article pages
+│   └── studio/           # Animation export studio
+├── components/
+│   ├── flywheel/         # Edge flow + flywheel animations
+│   ├── market-map/       # Stack market map
+│   └── site/             # USV header + page shell
+└── lib/
+    └── posts.js          # Article content (single post today)
+```
+
+## Scripts
+
+```bash
+npm run dev      # Development server
+npm run build    # Production build
+npm run start    # Start production server
+npm run lint     # ESLint
+```
+
+## Brand tokens
+
+- Primary green: `#28A055`
+- Headlines: Graphik Semibold
+- Body: Graphik regular

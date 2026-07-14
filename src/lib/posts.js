@@ -5,14 +5,6 @@ export const posts = [
     publishedAt: "July 6, 2026",
     excerpt:
       "Many of the most critical data sets are the ones that we have long been mostly unable to access or interpret.",
-    mediaNotes: {
-      first:
-        "Descriptive note: add context for the ocean-edge image, source, and why it matters for this section.",
-      second:
-        "Descriptive note: add context for the flywheel animation and what each stage is intended to communicate.",
-      third:
-        "Descriptive note: add context for the physical world stack market map and how to read each layer.",
-    },
     body: [
       "Many of the most critical data sets are the ones that we have long been mostly unable to access or interpret.",
       "Value on the internet has largely compounded through data loops that continuously strengthen with scale. A product or platform collects data, that data makes that product better, and the better product earns the right to, in turn, collect more data. That self improving loop sits beneath most durable software businesses and has been a significant pillar of the USV network effects thesis since Andy wrote about how it sits beneath application layer network effects in 2015.",

@@ -1,0 +1,81 @@
+<!--
+  WordPress: add a Custom HTML block and paste everything inside the <figure> below.
+  1. Upload public/assets/Cliff-Water.svg to your Media Library.
+  2. Replace YOUR_SVG_URL with the file URL (e.g. https://yoursite.com/wp-content/uploads/2026/07/Cliff-Water.svg).
+  3. Use <object> (not <img>) so the water animation plays.
+-->
+<figure class="usv-edgeflow-embed">
+  <style>
+    .usv-edgeflow-embed {
+      margin: 2rem 0;
+      max-width: 1040px;
+      width: 100%;
+    }
+
+    .usv-edgeflow-viewport {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #fffcfc;
+    }
+
+    .usv-edgeflow-canvas {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.1538%; /* 584 / 1040 */
+    }
+
+    .usv-edgeflow-canvas-inner {
+      position: absolute;
+      left: -36px;
+      top: 0;
+      width: 1040px;
+      height: 584px;
+      transform-origin: top left;
+    }
+
+    .usv-edgeflow-canvas-inner object,
+    .usv-edgeflow-canvas-inner img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (max-width: 1040px) {
+      .usv-edgeflow-canvas-inner {
+        transform: scale(calc(100vw / 1040));
+      }
+
+      .usv-edgeflow-canvas {
+        padding-bottom: calc(584 / 1040 * 100vw);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .usv-edgeflow-canvas-inner {
+        left: 0;
+      }
+    }
+  </style>
+
+  <div class="usv-edgeflow-viewport">
+    <div class="usv-edgeflow-canvas">
+      <div class="usv-edgeflow-canvas-inner">
+        <object
+          data="YOUR_SVG_URL"
+          type="image/svg+xml"
+          width="1040"
+          height="584"
+          aria-label="Data flowing across the edge illustration"
+        >
+          <img
+            src="YOUR_SVG_URL"
+            width="1040"
+            height="584"
+            alt="Data flowing across the edge illustration"
+          />
+        </object>
+      </div>
+    </div>
+  </div>
+</figure>
