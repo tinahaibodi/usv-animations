@@ -190,11 +190,20 @@ a {
 }
 
 .usv-article-header h1 {
-  margin: calc(var(--lh) * 0.5) 0 calc(var(--lh) * 1.1);
+  margin: calc(var(--lh) * 0.5) 0 calc(var(--lh) * 0.5);
   font-size: 52px;
   line-height: 52px;
   letter-spacing: -0.03em;
   font-weight: 700;
+}
+
+.usv-article-subtitle {
+  max-width: 78ch;
+  margin-bottom: calc(var(--lh) * 0.75);
+  color: #30343a;
+  font-size: 22px;
+  line-height: 32px;
+  font-weight: 500;
 }
 
 .usv-back-link {
@@ -220,7 +229,7 @@ a {
 
 .usv-article-media--lead {
   margin-top: calc(var(--lh) * 0.65);
-  width: min(100%, 1040px);
+  width: min(100%, 1184px);
 }
 
 .usv-article-media--market-map {
@@ -230,6 +239,11 @@ a {
 
 .usv-article-media--lead .edgeflow-canvas-inner {
   left: -36px;
+  right: auto;
+}
+
+.usv-article-media--lead .shatter-canvas-inner {
+  left: 0;
   right: auto;
 }
 
@@ -249,6 +263,15 @@ a {
   color: #1f2328;
   font-size: 18px;
   line-height: 32px;
+}
+
+.usv-article-section h2 {
+  max-width: 78ch;
+  margin: calc(var(--lh) * 1.5) 0 calc(var(--lh) * 0.75);
+  font-size: 32px;
+  line-height: 38px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
 }
 
 .flywheel-viewport {
@@ -311,6 +334,49 @@ a {
 
 .edgeflow-svg-stage text {
   font-family: "Graphik Semibold", Graphik, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+.shatter-viewport {
+  position: relative;
+  width: 1184px;
+  height: 792px;
+  max-width: 100%;
+  margin: 0;
+  border: 0;
+  overflow: hidden;
+  background: #2a6840;
+}
+
+@media (max-width: 1184px) {
+  .shatter-viewport {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1184 / 792;
+  }
+}
+
+.shatter-viewport svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shatter-canvas-el {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shatter-canvas {
+  position: relative;
+  width: 100%;
+}
+
+.shatter-canvas-inner {
+  position: absolute;
+  inset: 0;
+  width: 1184px;
+  height: 792px;
 }
 
 .studio-page {

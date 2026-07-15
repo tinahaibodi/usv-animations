@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { EdgeFlowInline } from "@/components/flywheel/flywheel-scene";
-import FlywheelStackRadial from "@/components/flywheel/flywheel-stack-radial";
-import PhysicalWorldStackMap from "@/components/market-map/physical-world-stack-map";
+import {
+  ArticleFooterMedia,
+  ArticleHeaderMedia,
+  ArticleInlineMedia,
+} from "@/components/article/article-media";
 import UsvPageShell from "@/components/site/usv-page-shell";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 
@@ -24,10 +26,52 @@ export async function generateMetadata({ params }) {
   };
 }
 
+function ArticleBody({ post }) {
+  if (post.blocks) {
+    return (
+      <section className="usv-article-section usv-article-flow">
+        {post.blocks.map((block, index) => {
+          if (block.type === "heading") {
+            return <h2 key={index}>{block.text}</h2>;
+          }
+
+          return <p key={index}>{block.text}</p>;
+        })}
+      </section>
+    );
+  }
+
+  const inlineMedia = post.media?.inline ?? [];
+
+  return (
+    <section className="usv-article-section usv-article-flow">
+      {post.body.map((paragraph, index) => (
+        <div key={index}>
+          {inlineMedia.map((media) =>
+            media.afterParagraph === index ? (
+              <figure key={`${media.type}-${index}`} className="usv-article-media">
+                <ArticleInlineMedia media={media} />
+              </figure>
+            ) : null,
+          )}
+          <p>{paragraph}</p>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export default async function BlogPostPage({ params }) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
   if (!post) notFound();
+
+  const headerMedia = post.media?.header;
+  const footerMedia = post.media?.footer;
+  const footerClassName =
+    footerMedia?.type === "market-map"
+      ? "usv-article-media usv-article-media--market-map usv-article-flow"
+      : "usv-article-media usv-article-flow";
 
   return (
     <UsvPageShell>
@@ -35,31 +79,25 @@ export default async function BlogPostPage({ params }) {
         <header className="usv-article-header usv-article-flow">
           <p className="usv-post-date">{post.publishedAt}</p>
           <h1>{post.title}</h1>
+          {post.subtitle ? <p className="usv-article-subtitle">{post.subtitle}</p> : null}
           <Link href="/writing" className="usv-back-link">
             Back to Blog
           </Link>
         </header>
 
-        <figure className="usv-article-media usv-article-media--lead usv-article-flow">
-          <EdgeFlowInline />
-        </figure>
+        {headerMedia ? (
+          <figure className="usv-article-media usv-article-media--lead usv-article-flow">
+            <ArticleHeaderMedia media={headerMedia} />
+          </figure>
+        ) : null}
 
-        <section className="usv-article-section usv-article-flow">
-          {post.body.map((paragraph, index) => (
-            <div key={index}>
-              {index === 8 ? (
-                <figure className="usv-article-media">
-                  <FlywheelStackRadial />
-                </figure>
-              ) : null}
-              <p>{paragraph}</p>
-            </div>
-          ))}
-        </section>
+        <ArticleBody post={post} />
 
-        <figure className="usv-article-media usv-article-media--market-map usv-article-flow">
-          <PhysicalWorldStackMap />
-        </figure>
+        {footerMedia ? (
+          <figure className={footerClassName}>
+            <ArticleFooterMedia media={footerMedia} />
+          </figure>
+        ) : null}
       </article>
     </UsvPageShell>
   );

@@ -25,7 +25,7 @@ export default function WritingIndexPage() {
           <article key={post.slug} className="usv-post-card">
             <p className="usv-post-date">{post.publishedAt}</p>
             <h2>
-              <Link href={`/writing/${post.slug}`}>{post.title}</Link>
+              <Link href={`/writing/${post.slug}`}>{post.listTitle ?? post.title}</Link>
             </h2>
             <p>{post.excerpt}</p>
           </article>

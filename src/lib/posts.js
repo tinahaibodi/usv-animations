@@ -1,5 +1,62 @@
 export const posts = [
   {
+    slug: "obliterate",
+    title: "There's never been a better time to obliterate.",
+    listTitle: "Obliterate",
+    subtitle: "On AI and the potential to transform markets",
+    publishedAt: "July 16, 2026",
+    excerpt:
+      "Why USV believes the best startup opportunities fully obliterate existing markets instead of merely automating them.",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "In 2015, my partner Fred Wilson published a short blog post, Don't Automate, Obliterate, on how USV thinks about startup investments. The post was based on a 1990 HBR article by Michael Hammer by the same name. Specifically, Fred and the rest of USV partners found that the best investments were in the companies that were not just building software to automate existing markets… but to fully obliterate them instead.",
+      },
+      {
+        type: "paragraph",
+        text: "Since then, it's become a defining characteristic for how USV assesses startup opportunities. In many ways, every thesis USV has ever articulated has been built upon this idea. You can trace it through direct-to-learner education (Duolingo), programmable money (Coinbase), and publishing without publishers (Twitter). Our whole quest has been how to overhaul market structures instead of simply creating efficiencies within them. But only recently did it become clear to us how AI makes the potential for true obliteration of existing business models and markets that much stronger. In other words: there's never been a better time to obliterate.",
+      },
+      {
+        type: "heading",
+        text: "So what changed?",
+      },
+      {
+        type: "paragraph",
+        text: "The internet collapsed the cost of distribution and stripped the market power from the media companies that controlled it. AI does the same thing to expertise. As expert-level intelligence becomes abundant to anyone with an agent, the people, companies, and institutions whose power came from gatekeeping that expertise start to lose it. Instead of renting expertise from a gatekeeper, you can access and deploy it directly. No gatekeeper required. That shift, from the supply side to the demand side, is what actually restructures a market. We've already made a few investments that we think have the potential to obliterate the markets in which they exist, thanks to AI.",
+      },
+      {
+        type: "paragraph",
+        text: "Doctronic, as one example, doesn't simply help streamline the experience between doctors and patients. Instead, it democratizes medicine by putting an AI doctor (that can even legally write prescriptions, starting in Utah) into the pocket of anyone with a smartphone.",
+      },
+      {
+        type: "paragraph",
+        text: "Isembard doesn't just sell software to existing factories. It rebuilds the factory itself by packaging the expertise of running a high-precision manufacturing line into software. The industrial capability that used to live in a handful of aging machine shops becomes something you can deploy through AI.",
+      },
+      {
+        type: "paragraph",
+        text: "Or Cofounder, a company that doesn't make product development, sales, marketing, and distribution easier, but launches and manages full businesses on behalf of its customers.",
+      },
+      {
+        type: "paragraph",
+        text: "In each of these examples, if they work, the markets they're in won't look the same for much longer. And in nearly every category of business, across both consumer and enterprise, it's clearer than ever that AI has the potential to reset the table completely. Almost everywhere you look, there's an opportunity to transfer the balance of power away from a gatekeeper and towards a customer. The opening is that big.",
+      },
+      {
+        type: "paragraph",
+        text: "This is what we mean by obliterate.",
+      },
+    ],
+    media: {
+      header: { type: "obliterate-shatter" },
+      footer: {
+        type: "image",
+        src: "/assets/obliterate-infographic.png",
+        alt: "On AI and the potential to transform markets",
+        width: 760,
+        height: 428,
+      },
+    },
+  },
+  {
     slug: "data-at-the-edge",
     title: "Data at the Edge",
     publishedAt: "July 6, 2026",
@@ -20,6 +77,11 @@ export const posts = [
       "There is a lot of conversation about interest in physical world AI and robotics stemming from a fear of what's going on in software. But that's not why we're focused here. It's because the same opportunity for data loops that provide the base for massive market-shifting opportunities are now accessible in huge new pockets, previously unreachable.",
       "We are very early. Most of these datasets are barely tapped, and most of the products that will run on them do not exist yet. Finding them, reaching them, and putting them to work will change how we interact with the physical world. We want to explore the entirety of that edge with the founders running toward it.",
     ],
+    media: {
+      header: { type: "edge-flow" },
+      inline: [{ afterParagraph: 8, type: "flywheel-stack" }],
+      footer: { type: "market-map" },
+    },
   },
 ];
 
