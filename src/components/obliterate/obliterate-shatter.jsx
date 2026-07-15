@@ -14,18 +14,37 @@ const seg = (t, start, dur) => clamp((t - start) / dur, 0, 1);
 
 const Easing = {
   easeOutCubic: (x) => 1 - Math.pow(1 - x, 3),
+  easeInOutCubic: (x) =>
+    x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
 };
 
 /**
- * Intact hold → shatter → hold → hard cut.
- * No fade / rewind (that looked like shards flying inward).
+ * Intact → shatter (ripple from impact) → hold → short dissolve back to intact.
+ * Dissolve is whole-frame only — shards never rewind / fly inward.
  */
-function loopProgress(seconds) {
+function loopState(seconds) {
   const phase = (seconds % DUR) / DUR;
-  if (phase < 0.1) return 0;
-  if (phase < 0.62) return Easing.easeOutCubic(seg(phase, 0.1, 0.52));
-  if (phase < 0.9) return 1;
-  return 0;
+
+  if (phase < 0.1) {
+    return { progress: 0, blend: 0 };
+  }
+
+  if (phase < 0.62) {
+    return {
+      progress: Easing.easeOutCubic(seg(phase, 0.1, 0.52)),
+      blend: 0,
+    };
+  }
+
+  if (phase < 0.86) {
+    return { progress: 1, blend: 0 };
+  }
+
+  // Crossfade shattered → intact (kills the hard-cut flash).
+  return {
+    progress: 1,
+    blend: Easing.easeInOutCubic(seg(phase, 0.86, 0.14)),
+  };
 }
 
 function buildRuntime(shards) {
@@ -56,7 +75,7 @@ function buildRuntime(shards) {
   return { count, paths, cx, cy, dirX, dirY, distance, rotation, delay, duration };
 }
 
-function drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH) {
+function drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH, opening) {
   const { count, paths, cx, cy, dirX, dirY, distance, rotation, delay, duration } =
     runtime;
   const scale = Math.min(width / sourceW, height / sourceH);
@@ -64,6 +83,9 @@ function drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH) {
   const oy = (height - sourceH * scale) / 2;
   const rad = Math.PI / 180;
   const moving = progress > 0.001 && progress < 0.999;
+  const clearR = opening?.radius ?? 0;
+  const oxC = opening?.cx ?? 0;
+  const oyC = opening?.cy ?? 0;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = BG;
@@ -85,6 +107,13 @@ function drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH) {
     const px = cx[i];
     const py = cy[i];
 
+    // Never leave a piece sitting in the opening once mostly shattered.
+    if (clearR > 0 && eased > 0.85) {
+      const restX = px + dirX[i] * distance[i] * eased;
+      const restY = py + dirY[i] * distance[i] * eased;
+      if (Math.hypot(restX - oxC, restY - oyC) < clearR) continue;
+    }
+
     ctx.save();
     ctx.translate(tx + px, ty + py);
     if (rot !== 0) ctx.rotate(rot);
@@ -95,7 +124,7 @@ function drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH) {
   }
 }
 
-function bake(runtime, progress, sourceW, sourceH, dpr) {
+function bake(runtime, progress, sourceW, sourceH, dpr, opening) {
   const width = Math.round(VIEW_W * dpr);
   const height = Math.round(VIEW_H * dpr);
   const canvas = document.createElement("canvas");
@@ -103,20 +132,24 @@ function bake(runtime, progress, sourceW, sourceH, dpr) {
   canvas.height = height;
   const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
   if (!ctx) return canvas;
-  drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH);
+  drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH, opening);
   return canvas;
 }
 
 function ShatterViewport() {
   const canvasRef = useRef(null);
   const runtimeRef = useRef(null);
-  const metaRef = useRef({ sourceW: 1184, sourceH: 792 });
+  const metaRef = useRef({
+    sourceW: 1184,
+    sourceH: 792,
+    opening: { cx: 410, cy: 295, radius: 130 },
+  });
   const intactRef = useRef(null);
   const shatteredRef = useRef(null);
   const [ready, setReady] = useState(false);
   const rafRef = useRef(null);
   const startRef = useRef(0);
-  const lastProgressRef = useRef(-1);
+  const lastKeyRef = useRef("");
 
   useEffect(() => {
     let isActive = true;
@@ -126,14 +159,22 @@ function ShatterViewport() {
       .then((data) => {
         if (!isActive) return;
 
-        metaRef.current = { sourceW: data.sourceW, sourceH: data.sourceH };
+        const opening = {
+          cx: data.impact?.cx ?? 410,
+          cy: data.impact?.cy ?? 295,
+          radius: data.openingClear ?? 130,
+        };
+        metaRef.current = {
+          sourceW: data.sourceW,
+          sourceH: data.sourceH,
+          opening,
+        };
         const runtime = buildRuntime(data.shards);
         runtimeRef.current = runtime;
 
-        // Same resolution for motion + holds so quality doesn't "pop".
         const dpr = 1;
-        intactRef.current = bake(runtime, 0, data.sourceW, data.sourceH, dpr);
-        shatteredRef.current = bake(runtime, 1, data.sourceW, data.sourceH, dpr);
+        intactRef.current = bake(runtime, 0, data.sourceW, data.sourceH, dpr, opening);
+        shatteredRef.current = bake(runtime, 1, data.sourceW, data.sourceH, dpr, opening);
         setReady(true);
       })
       .catch(() => {
@@ -166,26 +207,48 @@ function ShatterViewport() {
       }
 
       if (!startRef.current) startRef.current = now;
-      const progress = loopProgress((now - startRef.current) / 1000);
+      const { progress, blend } = loopState((now - startRef.current) / 1000);
 
-      // Full framerate during shatter; skip only identical hold frames.
-      const atHold = progress === 0 || progress === 1;
-      if (atHold && progress === lastProgressRef.current) {
+      const key =
+        blend > 0
+          ? `blend:${(blend * 40) | 0}`
+          : progress === 0 || progress === 1
+            ? `hold:${progress}`
+            : `move:${(progress * 120) | 0}`;
+
+      if (key === lastKeyRef.current) {
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
-      lastProgressRef.current = progress;
+      lastKeyRef.current = key;
 
-      const { sourceW, sourceH } = metaRef.current;
+      const { sourceW, sourceH, opening } = metaRef.current;
 
-      if (progress === 0 && intactRef.current) {
+      if (blend > 0 && intactRef.current && shatteredRef.current) {
+        // Soft restart: dissolve between two static frames — no reverse motion.
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.drawImage(shatteredRef.current, 0, 0);
+        ctx.globalAlpha = blend;
+        ctx.drawImage(intactRef.current, 0, 0);
+        ctx.globalAlpha = 1;
+      } else if (progress === 0 && intactRef.current) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(intactRef.current, 0, 0);
       } else if (progress === 1 && shatteredRef.current) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(shatteredRef.current, 0, 0);
       } else {
-        drawFrame(ctx, runtime, progress, canvas.width, canvas.height, sourceW, sourceH);
+        drawFrame(
+          ctx,
+          runtime,
+          progress,
+          canvas.width,
+          canvas.height,
+          sourceW,
+          sourceH,
+          opening,
+        );
       }
 
       rafRef.current = requestAnimationFrame(tick);
@@ -194,7 +257,7 @@ function ShatterViewport() {
     if (intactRef.current) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.drawImage(intactRef.current, 0, 0);
-      lastProgressRef.current = 0;
+      lastKeyRef.current = "hold:0";
     }
 
     rafRef.current = requestAnimationFrame(tick);
@@ -203,7 +266,7 @@ function ShatterViewport() {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
       startRef.current = 0;
-      lastProgressRef.current = -1;
+      lastKeyRef.current = "";
     };
   }, [ready]);
 

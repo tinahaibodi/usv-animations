@@ -10,6 +10,8 @@ const IMPACT_CX = 410;
 const IMPACT_CY = 295;
 const GOLDEN_ANGLE = 137.508;
 const OPENING_CLEAR = 130;
+/** How much of the shatter timeline the radial wave takes (center → outer edge). */
+const RIPPLE_SPAN = 0.62;
 
 const svg = readFileSync(svgPath, "utf8");
 const pathRegex = /<path\s+([^>]+)\/>/g;
@@ -54,7 +56,7 @@ function clearsOpening(pts, center, dirX, dirY, distance, rotation, clearR) {
   return true;
 }
 
-function buildMotion(center, pts, index) {
+function buildMotion(center, pts, index, maxDist) {
   const [cx, cy] = center;
   const dx = cx - IMPACT_CX;
   const dy = cy - IMPACT_CY;
@@ -67,7 +69,6 @@ function buildMotion(center, pts, index) {
   const dirX = Math.cos(angle);
   const dirY = Math.sin(angle);
 
-  // Original-feel radial shatter.
   const radialPush = 18 + dist * 0.42 + (index % 11) * 4;
   const openingBoost = dist < 130 ? (1 - dist / 130) * 95 : 0;
   let distance = radialPush + openingBoost;
@@ -75,27 +76,31 @@ function buildMotion(center, pts, index) {
   let rotation =
     (dirX * 36 - dirY * 22) * (0.6 + (dist % 90) / 120) + (index % 13) * 11 - 40;
 
-  // Only push extra for shards that actually start near the opening —
-  // don't rocket giant far polygons just because one vertex grazes the hole.
-  if (dist < OPENING_CLEAR + 40) {
-    distance = Math.max(distance, OPENING_CLEAR - dist + 70);
+  // Push until no vertex rests inside the opening (including far mega-polygons).
+  if (!clearsOpening(pts, center, dirX, dirY, distance, rotation, OPENING_CLEAR)) {
+    distance = Math.max(distance, OPENING_CLEAR - Math.min(dist, OPENING_CLEAR) + 80);
     let guard = 0;
     while (
       !clearsOpening(pts, center, dirX, dirY, distance, rotation, OPENING_CLEAR) &&
-      guard < 30
+      guard < 80
     ) {
-      distance += 12;
-      rotation *= 0.92;
+      distance += 18;
+      rotation *= 0.88;
       guard += 1;
+    }
+    if (!clearsOpening(pts, center, dirX, dirY, distance, rotation, OPENING_CLEAR)) {
+      const span = pts.reduce(
+        (max, [px, py]) => Math.max(max, Math.hypot(px - cx, py - cy)),
+        0,
+      );
+      rotation = 0;
+      distance = Math.max(distance, OPENING_CLEAR + span + 40);
     }
   }
 
-  // Ripple timing: center first, outer follows — scaled to finish by progress 1.
-  const rawDelay = dist * 0.0012 + (index % 5) * 0.004;
-  const rawDuration = 0.42 + dist * 0.00055 + (index % 4) * 0.03;
-  const scale = Math.min(1, 0.92 / (rawDelay + rawDuration));
-  const delay = rawDelay * scale;
-  const duration = Math.max(0.28, rawDuration * scale);
+  // Strict distance-from-impact delay — ripple starts at the circle, not the top.
+  const delay = (dist / maxDist) * RIPPLE_SPAN;
+  const duration = 0.3 + (index % 4) * 0.025;
 
   return {
     mode: dist < 130 ? "opening" : "shatter",
@@ -109,9 +114,8 @@ function buildMotion(center, pts, index) {
   };
 }
 
-const shards = [];
+const raw = [];
 let match;
-let index = 0;
 
 while ((match = pathRegex.exec(svg)) !== null) {
   const attrs = match[1];
@@ -123,18 +127,24 @@ while ((match = pathRegex.exec(svg)) !== null) {
 
   const pts = pathPoints(d);
   const center = pathCenter(pts);
-  shards.push({
-    d,
-    center,
-    motion: buildMotion(center, pts, index),
-  });
-  index += 1;
+  raw.push({ d, center, pts });
 }
+
+const maxDist = Math.max(
+  1,
+  ...raw.map(({ center }) =>
+    Math.hypot(center[0] - IMPACT_CX, center[1] - IMPACT_CY),
+  ),
+);
+
+const shards = raw.map((item, index) => ({
+  d: item.d,
+  center: item.center,
+  motion: buildMotion(item.center, item.pts, index, maxDist),
+}));
 
 let uncleared = 0;
 for (const s of shards) {
-  const dist = Math.hypot(s.center[0] - IMPACT_CX, s.center[1] - IMPACT_CY);
-  if (dist >= OPENING_CLEAR + 40) continue;
   const pts = pathPoints(s.d);
   const { dirX, dirY, distance, rotation } = s.motion;
   if (!clearsOpening(pts, s.center, dirX, dirY, distance, rotation, OPENING_CLEAR)) {
@@ -149,8 +159,11 @@ writeFileSync(
     sourceH: 792,
     impact: { cx: IMPACT_CX, cy: IMPACT_CY },
     openingClear: OPENING_CLEAR,
+    maxDist,
     shards,
   }),
 );
 
-console.log(`Wrote ${shards.length} shards (${uncleared} near-impact uncleared)`);
+console.log(
+  `Wrote ${shards.length} shards (maxDist=${maxDist.toFixed(1)}, near-impact uncleared=${uncleared})`,
+);
