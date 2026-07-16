@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const DUR = 14;
+const DUR = 10;
 const BG = "#2a6840";
 const FILL = "#34A853";
 const STROKE = "#ffffff";
@@ -14,37 +14,20 @@ const seg = (t, start, dur) => clamp((t - start) / dur, 0, 1);
 
 const Easing = {
   easeOutCubic: (x) => 1 - Math.pow(1 - x, 3),
-  easeInOutCubic: (x) =>
-    x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
 };
 
 /**
- * Intact → shatter (ripple from impact) → hold → short dissolve back to intact.
- * Dissolve is whole-frame only — shards never rewind / fly inward.
+ * Option 5 loop: hold shattered until the next cycle, then cut to intact
+ * only as that cycle begins — no dissolve, no reverse shard motion.
+ *
+ * Brief intact → ripple shatter → short shattered hold → wrap into next cycle.
+ * Total ~10s: ~0.6s intact, ~6.4s shatter, ~3s hold.
  */
-function loopState(seconds) {
+function loopProgress(seconds) {
   const phase = (seconds % DUR) / DUR;
-
-  if (phase < 0.1) {
-    return { progress: 0, blend: 0 };
-  }
-
-  if (phase < 0.62) {
-    return {
-      progress: Easing.easeOutCubic(seg(phase, 0.1, 0.52)),
-      blend: 0,
-    };
-  }
-
-  if (phase < 0.86) {
-    return { progress: 1, blend: 0 };
-  }
-
-  // Crossfade shattered → intact (kills the hard-cut flash).
-  return {
-    progress: 1,
-    blend: Easing.easeInOutCubic(seg(phase, 0.86, 0.14)),
-  };
+  if (phase < 0.06) return 0;
+  if (phase < 0.7) return Easing.easeOutCubic(seg(phase, 0.06, 0.64));
+  return 1;
 }
 
 function buildRuntime(shards) {
@@ -207,14 +190,12 @@ function ShatterViewport() {
       }
 
       if (!startRef.current) startRef.current = now;
-      const { progress, blend } = loopState((now - startRef.current) / 1000);
+      const progress = loopProgress((now - startRef.current) / 1000);
 
       const key =
-        blend > 0
-          ? `blend:${(blend * 40) | 0}`
-          : progress === 0 || progress === 1
-            ? `hold:${progress}`
-            : `move:${(progress * 120) | 0}`;
+        progress === 0 || progress === 1
+          ? `hold:${progress}`
+          : `move:${(progress * 120) | 0}`;
 
       if (key === lastKeyRef.current) {
         rafRef.current = requestAnimationFrame(tick);
@@ -224,15 +205,7 @@ function ShatterViewport() {
 
       const { sourceW, sourceH, opening } = metaRef.current;
 
-      if (blend > 0 && intactRef.current && shatteredRef.current) {
-        // Soft restart: dissolve between two static frames — no reverse motion.
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.globalAlpha = 1;
-        ctx.drawImage(shatteredRef.current, 0, 0);
-        ctx.globalAlpha = blend;
-        ctx.drawImage(intactRef.current, 0, 0);
-        ctx.globalAlpha = 1;
-      } else if (progress === 0 && intactRef.current) {
+      if (progress === 0 && intactRef.current) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(intactRef.current, 0, 0);
       } else if (progress === 1 && shatteredRef.current) {

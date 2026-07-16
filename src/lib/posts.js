@@ -50,9 +50,9 @@ export const posts = [
       footer: {
         type: "image",
         src: "/assets/obliterate-infographic.png",
-        alt: "On AI and the potential to transform markets",
-        width: 760,
-        height: 428,
+        alt: "Obliterate Healthcare Systems — Putting a doctor in everyone's pocket",
+        width: 1024,
+        height: 689,
       },
     },
   },
