@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import ArticleImage from "@/components/article/article-image";
 import {
   ArticleFooterMedia,
   ArticleHeaderMedia,
@@ -33,6 +34,19 @@ function ArticleBody({ post }) {
         {post.blocks.map((block, index) => {
           if (block.type === "heading") {
             return <h2 key={index}>{block.text}</h2>;
+          }
+
+          if (block.type === "image") {
+            return (
+              <figure key={index} className="usv-article-media">
+                <ArticleImage
+                  src={block.src}
+                  alt={block.alt}
+                  width={block.width}
+                  height={block.height}
+                />
+              </figure>
+            );
           }
 
           return <p key={index}>{block.text}</p>;

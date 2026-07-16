@@ -25,6 +25,13 @@ export const posts = [
         text: "The internet collapsed the cost of distribution and stripped the market power from the media companies that controlled it. AI does the same thing to expertise. As expert-level intelligence becomes abundant to anyone with an agent, the people, companies, and institutions whose power came from gatekeeping that expertise start to lose it. Instead of renting expertise from a gatekeeper, you can access and deploy it directly. No gatekeeper required. That shift, from the supply side to the demand side, is what actually restructures a market. We've already made a few investments that we think have the potential to obliterate the markets in which they exist, thanks to AI.",
       },
       {
+        type: "image",
+        src: "/assets/obliterate-infographic.png",
+        alt: "Obliterate Healthcare Systems — Putting a doctor in everyone's pocket",
+        width: 1024,
+        height: 689,
+      },
+      {
         type: "paragraph",
         text: "Doctronic, as one example, doesn't simply help streamline the experience between doctors and patients. Instead, it democratizes medicine by putting an AI doctor (that can even legally write prescriptions, starting in Utah) into the pocket of anyone with a smartphone.",
       },
@@ -47,13 +54,6 @@ export const posts = [
     ],
     media: {
       header: { type: "obliterate-shatter" },
-      footer: {
-        type: "image",
-        src: "/assets/obliterate-infographic.png",
-        alt: "Obliterate Healthcare Systems — Putting a doctor in everyone's pocket",
-        width: 1024,
-        height: 689,
-      },
     },
   },
   {
