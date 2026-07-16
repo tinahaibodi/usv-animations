@@ -1,4 +1,4 @@
-import ArticleImage from "@/components/article/article-image";
+import ArticleImage, { ArticleVideo } from "@/components/article/article-image";
 import { EdgeFlowInline } from "@/components/flywheel/flywheel-scene";
 import FlywheelStackRadial from "@/components/flywheel/flywheel-stack-radial";
 import PhysicalWorldStackMap from "@/components/market-map/physical-world-stack-map";
@@ -13,6 +13,17 @@ export function ArticleHeaderMedia({ media }) {
 
   if (media.type === "obliterate-shatter") {
     return <ObliterateShatterInline />;
+  }
+
+  if (media.type === "video") {
+    return (
+      <ArticleVideo
+        src={media.src}
+        alt={media.alt}
+        width={media.width}
+        height={media.height}
+      />
+    );
   }
 
   if (media.type === "image") {

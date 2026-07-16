@@ -53,7 +53,13 @@ export const posts = [
       },
     ],
     media: {
-      header: { type: "obliterate-shatter" },
+      header: {
+        type: "video",
+        src: "/assets/obliterate-loop.mp4",
+        alt: "Green wireframe terrain loop",
+        width: 1184,
+        height: 784,
+      },
     },
   },
   {

@@ -247,7 +247,8 @@ a {
   right: auto;
 }
 
-.usv-article-media img {
+.usv-article-media img,
+.usv-article-media video {
   width: 100%;
   height: auto;
   display: block;

@@ -11,3 +11,19 @@ export default function ArticleImage({ src, alt, width, height, className }) {
     />
   );
 }
+
+export function ArticleVideo({ src, alt, width, height, className }) {
+  return (
+    <video
+      className={`${styles.image}${className ? ` ${className}` : ""}`}
+      src={src}
+      width={width}
+      height={height}
+      autoPlay
+      muted
+      loop
+      playsInline
+      aria-label={alt}
+    />
+  );
+}
