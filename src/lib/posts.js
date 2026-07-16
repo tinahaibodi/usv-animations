@@ -27,7 +27,7 @@ export const posts = [
       {
         type: "image",
         src: "/assets/obliterate-infographic.png",
-        alt: "Obliterate Healthcare Systems — Putting a doctor in everyone's pocket",
+        alt: "Obliterating Healthcare Systems — Putting a doctor in everyone's pocket",
         width: 1024,
         height: 689,
       },
@@ -53,13 +53,7 @@ export const posts = [
       },
     ],
     media: {
-      header: {
-        type: "video",
-        src: "/assets/obliterate-loop.mp4",
-        alt: "Green wireframe terrain loop",
-        width: 1184,
-        height: 784,
-      },
+      header: { type: "obliterate-shatter" },
     },
   },
   {

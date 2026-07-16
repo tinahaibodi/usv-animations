@@ -8,6 +8,8 @@ const FILL = "#34A853";
 const STROKE = "#ffffff";
 const VIEW_W = 1184;
 const VIEW_H = 792;
+const USV_SIZE = 37.95; // 30pt → +15% → +10%
+const USV_FONT = `600 ${USV_SIZE}px "Graphik Semibold", Graphik, "Helvetica Neue", Helvetica, Arial, sans-serif`;
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 const seg = (t, start, dur) => clamp((t - start) / dur, 0, 1);
@@ -28,6 +30,13 @@ function loopProgress(seconds) {
   if (phase < 0.06) return 0;
   if (phase < 0.7) return Easing.easeOutCubic(seg(phase, 0.06, 0.64));
   return 1;
+}
+
+function usvOpacity(progress) {
+  if (progress <= 0) return 0;
+  if (progress >= 1) return 1;
+  // Smooth fade in as the opening clears; no stepwise flash.
+  return Easing.easeOutCubic(clamp(progress / 0.45, 0, 1));
 }
 
 function buildRuntime(shards) {
@@ -58,7 +67,7 @@ function buildRuntime(shards) {
   return { count, paths, cx, cy, dirX, dirY, distance, rotation, delay, duration };
 }
 
-function drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH, opening) {
+function drawMesh(ctx, runtime, progress, width, height, sourceW, sourceH, opening) {
   const { count, paths, cx, cy, dirX, dirY, distance, rotation, delay, duration } =
     runtime;
   const scale = Math.min(width / sourceW, height / sourceH);
@@ -105,9 +114,30 @@ function drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH, open
     ctx.stroke(paths[i]);
     ctx.restore();
   }
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
-function bake(runtime, progress, sourceW, sourceH, dpr, opening) {
+function drawUsvOverlay(ctx, opening, progress, width, height, sourceW, sourceH) {
+  const opacity = usvOpacity(progress);
+  if (!opening || opacity <= 0) return;
+
+  const scale = Math.min(width / sourceW, height / sourceH);
+  const ox = (width - sourceW * scale) / 2;
+  const oy = (height - sourceH * scale) / 2;
+
+  ctx.save();
+  ctx.setTransform(scale, 0, 0, scale, ox, oy);
+  ctx.globalAlpha = opacity;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = USV_FONT;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("USV", opening.cx, opening.cy);
+  ctx.restore();
+}
+
+function bakeMesh(runtime, progress, sourceW, sourceH, dpr, opening) {
   const width = Math.round(VIEW_W * dpr);
   const height = Math.round(VIEW_H * dpr);
   const canvas = document.createElement("canvas");
@@ -115,7 +145,7 @@ function bake(runtime, progress, sourceW, sourceH, dpr, opening) {
   canvas.height = height;
   const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
   if (!ctx) return canvas;
-  drawFrame(ctx, runtime, progress, width, height, sourceW, sourceH, opening);
+  drawMesh(ctx, runtime, progress, width, height, sourceW, sourceH, opening);
   return canvas;
 }
 
@@ -129,18 +159,30 @@ function ShatterViewport() {
   });
   const intactRef = useRef(null);
   const shatteredRef = useRef(null);
+  const meshBufferRef = useRef(null);
   const [ready, setReady] = useState(false);
   const rafRef = useRef(null);
   const startRef = useRef(0);
-  const lastKeyRef = useRef("");
+  const lastMeshKeyRef = useRef("");
 
   useEffect(() => {
     let isActive = true;
 
-    fetch("/assets/obliterate-shard-data.json")
-      .then((response) => response.json())
-      .then((data) => {
+    const load = async () => {
+      try {
+        const response = await fetch("/assets/obliterate-shard-data.json");
+        const data = await response.json();
         if (!isActive) return;
+
+        if (document.fonts?.ready) {
+          await document.fonts.ready;
+        }
+        // Warm the USV font so the first overlay paint is stable.
+        try {
+          await document.fonts.load(USV_FONT);
+        } catch {
+          // Fall back to the generic stack if Graphik isn't registered.
+        }
 
         const opening = {
           cx: data.impact?.cx ?? 410,
@@ -156,13 +198,21 @@ function ShatterViewport() {
         runtimeRef.current = runtime;
 
         const dpr = 1;
-        intactRef.current = bake(runtime, 0, data.sourceW, data.sourceH, dpr, opening);
-        shatteredRef.current = bake(runtime, 1, data.sourceW, data.sourceH, dpr, opening);
+        intactRef.current = bakeMesh(runtime, 0, data.sourceW, data.sourceH, dpr, opening);
+        shatteredRef.current = bakeMesh(runtime, 1, data.sourceW, data.sourceH, dpr, opening);
+
+        const buffer = document.createElement("canvas");
+        buffer.width = Math.round(VIEW_W * dpr);
+        buffer.height = Math.round(VIEW_H * dpr);
+        meshBufferRef.current = buffer;
+
         setReady(true);
-      })
-      .catch(() => {
+      } catch {
         if (isActive) setReady(false);
-      });
+      }
+    };
+
+    load();
 
     return () => {
       isActive = false;
@@ -173,18 +223,59 @@ function ShatterViewport() {
     if (!ready) return;
 
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const meshBuffer = meshBufferRef.current;
+    if (!canvas || !meshBuffer) return;
 
     const dpr = 1;
     canvas.width = Math.round(VIEW_W * dpr);
     canvas.height = Math.round(VIEW_H * dpr);
 
     const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
-    if (!ctx) return;
+    const meshCtx = meshBuffer.getContext("2d", { alpha: false, desynchronized: true });
+    if (!ctx || !meshCtx) return;
+
+    const paintMesh = (progress) => {
+      const runtime = runtimeRef.current;
+      const { sourceW, sourceH, opening } = metaRef.current;
+      if (!runtime) return;
+
+      if (progress === 0 && intactRef.current) {
+        meshCtx.setTransform(1, 0, 0, 1, 0, 0);
+        meshCtx.drawImage(intactRef.current, 0, 0);
+      } else if (progress === 1 && shatteredRef.current) {
+        meshCtx.setTransform(1, 0, 0, 1, 0, 0);
+        meshCtx.drawImage(shatteredRef.current, 0, 0);
+      } else {
+        drawMesh(
+          meshCtx,
+          runtime,
+          progress,
+          meshBuffer.width,
+          meshBuffer.height,
+          sourceW,
+          sourceH,
+          opening,
+        );
+      }
+    };
+
+    const composite = (progress) => {
+      const { sourceW, sourceH, opening } = metaRef.current;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(meshBuffer, 0, 0);
+      drawUsvOverlay(
+        ctx,
+        opening,
+        progress,
+        canvas.width,
+        canvas.height,
+        sourceW,
+        sourceH,
+      );
+    };
 
     const tick = (now) => {
-      const runtime = runtimeRef.current;
-      if (!runtime) {
+      if (!runtimeRef.current) {
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
@@ -192,54 +283,33 @@ function ShatterViewport() {
       if (!startRef.current) startRef.current = now;
       const progress = loopProgress((now - startRef.current) / 1000);
 
-      const key =
+      const meshKey =
         progress === 0 || progress === 1
           ? `hold:${progress}`
           : `move:${(progress * 120) | 0}`;
 
-      if (key === lastKeyRef.current) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
+      if (meshKey !== lastMeshKeyRef.current) {
+        lastMeshKeyRef.current = meshKey;
+        paintMesh(progress);
       }
-      lastKeyRef.current = key;
 
-      const { sourceW, sourceH, opening } = metaRef.current;
-
-      if (progress === 0 && intactRef.current) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.drawImage(intactRef.current, 0, 0);
-      } else if (progress === 1 && shatteredRef.current) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.drawImage(shatteredRef.current, 0, 0);
-      } else {
-        drawFrame(
-          ctx,
-          runtime,
-          progress,
-          canvas.width,
-          canvas.height,
-          sourceW,
-          sourceH,
-          opening,
-        );
-      }
+      // Always re-composite so USV opacity tracks progress smoothly
+      // without being quantized to mesh frame steps.
+      composite(progress);
 
       rafRef.current = requestAnimationFrame(tick);
     };
 
-    if (intactRef.current) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(intactRef.current, 0, 0);
-      lastKeyRef.current = "hold:0";
-    }
-
+    paintMesh(0);
+    composite(0);
+    lastMeshKeyRef.current = "hold:0";
     rafRef.current = requestAnimationFrame(tick);
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
       startRef.current = 0;
-      lastKeyRef.current = "";
+      lastMeshKeyRef.current = "";
     };
   }, [ready]);
 
