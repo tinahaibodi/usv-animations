@@ -1,0 +1,60 @@
+.root {
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1210 / 860;
+  overflow: hidden;
+  background: #fff;
+}
+
+.svgHost {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.svgHost :global(svg) {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.svgHost :global([data-layer]) {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  transition:
+    opacity 700ms var(--ease-out-cubic),
+    transform 700ms var(--ease-out-cubic);
+  transition-delay: 0ms;
+  will-change: opacity, transform;
+}
+
+.svgHost :global([data-layer="bg"]),
+.svgHost :global([data-layer="topo"]),
+.svgHost :global([data-layer="grid"]),
+.svgHost :global([data-layer="arrow-1"]),
+.svgHost :global([data-layer="arrow-2"]) {
+  transform: none;
+}
+
+.svgHost :global([data-layer][data-in="true"]) {
+  opacity: 1;
+  transform: none;
+}
+
+.svgHost :global([data-layer="topo"][data-in="true"]) {
+  transition-duration: 900ms;
+}
+
+.svgHost :global([data-layer^="wave"][data-in="true"]) {
+  transition-duration: 800ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svgHost :global([data-layer]) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

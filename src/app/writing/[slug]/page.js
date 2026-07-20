@@ -7,6 +7,7 @@ import {
   ArticleHeaderMedia,
   ArticleInlineMedia,
 } from "@/components/article/article-media";
+import ObliterateDiagram from "@/components/obliterate/obliterate-diagram";
 import UsvPageShell from "@/components/site/usv-page-shell";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 
@@ -34,6 +35,14 @@ function ArticleBody({ post }) {
         {post.blocks.map((block, index) => {
           if (block.type === "heading") {
             return <h2 key={index}>{block.text}</h2>;
+          }
+
+          if (block.type === "obliterate-diagram") {
+            return (
+              <figure key={index} className="usv-article-media">
+                <ObliterateDiagram alt={block.alt} />
+              </figure>
+            );
           }
 
           if (block.type === "image") {

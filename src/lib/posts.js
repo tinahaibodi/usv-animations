@@ -6,7 +6,7 @@ export const posts = [
     subtitle: "On AI and the potential to transform markets",
     publishedAt: "July 16, 2026",
     excerpt:
-      "Why USV believes the best startup opportunities fully obliterate existing markets instead of merely automating them.",
+      "There's never been a better time to obliterate. On AI and the potential to transform markets.",
     blocks: [
       {
         type: "paragraph",
@@ -25,11 +25,8 @@ export const posts = [
         text: "The internet collapsed the cost of distribution and stripped the market power from the media companies that controlled it. AI does the same thing to expertise. As expert-level intelligence becomes abundant to anyone with an agent, the people, companies, and institutions whose power came from gatekeeping that expertise start to lose it. Instead of renting expertise from a gatekeeper, you can access and deploy it directly. No gatekeeper required. That shift, from the supply side to the demand side, is what actually restructures a market. We've already made a few investments that we think have the potential to obliterate the markets in which they exist, thanks to AI.",
       },
       {
-        type: "image",
-        src: "/assets/obliterate-infographic.png",
-        alt: "Obliterating Healthcare Systems — Putting a doctor in everyone's pocket",
-        width: 1024,
-        height: 689,
+        type: "obliterate-diagram",
+        alt: "Obliterating Bottlenecks: Transforming existing markets",
       },
       {
         type: "paragraph",
