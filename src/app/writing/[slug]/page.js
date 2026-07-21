@@ -7,7 +7,7 @@ import {
   ArticleHeaderMedia,
   ArticleInlineMedia,
 } from "@/components/article/article-media";
-import ObliterateDiagram from "@/components/obliterate/obliterate-diagram";
+import ObliteratePlaybook from "@/components/obliterate/obliterate-playbook";
 import UsvPageShell from "@/components/site/usv-page-shell";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 
@@ -37,17 +37,20 @@ function ArticleBody({ post }) {
             return <h2 key={index}>{block.text}</h2>;
           }
 
-          if (block.type === "obliterate-diagram") {
+          if (block.type === "obliterate-playbook") {
             return (
               <figure key={index} className="usv-article-media">
-                <ObliterateDiagram alt={block.alt} />
+                <ObliteratePlaybook alt={block.alt} />
               </figure>
             );
           }
 
           if (block.type === "image") {
+            const mediaClassName = block.wide
+              ? "usv-article-media usv-article-media--wide"
+              : "usv-article-media";
             return (
-              <figure key={index} className="usv-article-media">
+              <figure key={index} className={mediaClassName}>
                 <ArticleImage
                   src={block.src}
                   alt={block.alt}

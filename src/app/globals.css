@@ -230,6 +230,11 @@ a {
 .usv-article-media--lead {
   margin-top: calc(var(--lh) * 0.65);
   width: min(100%, 1184px);
+  overflow: visible;
+}
+
+.usv-article-media--wide {
+  width: min(100%, 1184px);
 }
 
 .usv-article-media--market-map {
@@ -338,22 +343,53 @@ a {
   font-family: "Graphik Semibold", Graphik, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
 
+.shatter-lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.shatter-download {
+  appearance: none;
+  border: 1px solid #1f2328;
+  background: #fff;
+  color: #1f2328;
+  font-family: Graphik, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.shatter-download:hover:not(:disabled) {
+  background: #f4f4f2;
+}
+
+.shatter-download:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .shatter-viewport {
   position: relative;
   width: 1184px;
-  height: 792px;
+  height: 474px;
   max-width: 100%;
   margin: 0;
   border: 0;
   overflow: hidden;
   background: #2a6840;
+  aspect-ratio: 5 / 2;
 }
 
 @media (max-width: 1184px) {
   .shatter-viewport {
     width: 100%;
     height: auto;
-    aspect-ratio: 1184 / 792;
   }
 }
 
@@ -378,7 +414,7 @@ a {
   position: absolute;
   inset: 0;
   width: 1184px;
-  height: 792px;
+  height: 474px;
 }
 
 .studio-page {

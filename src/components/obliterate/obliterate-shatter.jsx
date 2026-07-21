@@ -2,14 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import {
+  buildShatterSvg,
+  downloadShatterSvg,
+  EXPORT_PROGRESS,
+} from "./obliterate-shatter-svg";
+
 const DUR = 10;
 const BG = "#2a6840";
 const FILL = "#34A853";
 const STROKE = "#ffffff";
 const VIEW_W = 1184;
-const VIEW_H = 792;
-const USV_SIZE = 37.95; // 30pt → +15% → +10%
+const VIEW_H = 474; // 5:2
+const USV_SIZE = 53.13; // 75.9 − 30%
 const USV_FONT = `600 ${USV_SIZE}px "Graphik Semibold", Graphik, "Helvetica Neue", Helvetica, Arial, sans-serif`;
+/** Nudge USV up from the hole center (source px). */
+const USV_Y_NUDGE = -22;
+/** Source-space clear radius around the shatter hole. */
+const USV_CLEAR_R = 140;
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 const seg = (t, start, dur) => clamp((t - start) / dur, 0, 1);
@@ -67,12 +77,29 @@ function buildRuntime(shards) {
   return { count, paths, cx, cy, dirX, dirY, distance, rotation, delay, duration };
 }
 
+/**
+ * Cover-fit into the 5:1 viewport.
+ * Pin the shatter hole near the bottom of the banner (not vertically centered).
+ */
+function fitCover(width, height, sourceW, sourceH, opening) {
+  const scale = Math.max(width / sourceW, height / sourceH);
+  const ox = (width - sourceW * scale) / 2;
+  let oy = (height - sourceH * scale) / 2;
+  if (opening) {
+    // Lower portion of the banner — the little hole near the bottom.
+    const targetY = height * 0.76;
+    const desired = targetY - opening.cy * scale;
+    const minOy = height - sourceH * scale;
+    const maxOy = 0;
+    oy = clamp(desired, Math.min(minOy, maxOy), Math.max(minOy, maxOy));
+  }
+  return { scale, ox, oy };
+}
+
 function drawMesh(ctx, runtime, progress, width, height, sourceW, sourceH, opening) {
   const { count, paths, cx, cy, dirX, dirY, distance, rotation, delay, duration } =
     runtime;
-  const scale = Math.min(width / sourceW, height / sourceH);
-  const ox = (width - sourceW * scale) / 2;
-  const oy = (height - sourceH * scale) / 2;
+  const { scale, ox, oy } = fitCover(width, height, sourceW, sourceH, opening);
   const rad = Math.PI / 180;
   const moving = progress > 0.001 && progress < 0.999;
   const clearR = opening?.radius ?? 0;
@@ -90,6 +117,8 @@ function drawMesh(ctx, runtime, progress, width, height, sourceW, sourceH, openi
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
 
+  const holeR = Math.max(clearR, USV_CLEAR_R);
+
   for (let i = 0; i < count; i += 1) {
     const local = moving ? seg(progress, delay[i], duration[i]) : progress >= 1 ? 1 : 0;
     const eased = moving ? Easing.easeOutCubic(local) : local;
@@ -99,11 +128,11 @@ function drawMesh(ctx, runtime, progress, width, height, sourceW, sourceH, openi
     const px = cx[i];
     const py = cy[i];
 
-    // Never leave a piece sitting in the opening once mostly shattered.
-    if (clearR > 0 && eased > 0.85) {
-      const restX = px + dirX[i] * distance[i] * eased;
-      const restY = py + dirY[i] * distance[i] * eased;
-      if (Math.hypot(restX - oxC, restY - oyC) < clearR) continue;
+    // Keep shards out of the USV opening once they start moving.
+    if (holeR > 0 && (progress >= 1 || eased > 0.35)) {
+      const restX = px + tx;
+      const restY = py + ty;
+      if (Math.hypot(restX - oxC, restY - oyC) < holeR) continue;
     }
 
     ctx.save();
@@ -115,6 +144,15 @@ function drawMesh(ctx, runtime, progress, width, height, sourceW, sourceH, openi
     ctx.restore();
   }
 
+  // Punch the opening so glass never covers the USV mark.
+  if (holeR > 0 && progress > 0) {
+    const open = Easing.easeOutCubic(clamp(progress / 0.4, 0, 1));
+    ctx.beginPath();
+    ctx.arc(oxC, oyC, holeR * open, 0, Math.PI * 2);
+    ctx.fillStyle = BG;
+    ctx.fill();
+  }
+
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
@@ -122,9 +160,7 @@ function drawUsvOverlay(ctx, opening, progress, width, height, sourceW, sourceH)
   const opacity = usvOpacity(progress);
   if (!opening || opacity <= 0) return;
 
-  const scale = Math.min(width / sourceW, height / sourceH);
-  const ox = (width - sourceW * scale) / 2;
-  const oy = (height - sourceH * scale) / 2;
+  const { scale, ox, oy } = fitCover(width, height, sourceW, sourceH, opening);
 
   ctx.save();
   ctx.setTransform(scale, 0, 0, scale, ox, oy);
@@ -133,7 +169,7 @@ function drawUsvOverlay(ctx, opening, progress, width, height, sourceW, sourceH)
   ctx.font = USV_FONT;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("USV", opening.cx, opening.cy);
+  ctx.fillText("USV", opening.cx, opening.cy + USV_Y_NUDGE);
   ctx.restore();
 }
 
@@ -155,7 +191,7 @@ function ShatterViewport() {
   const metaRef = useRef({
     sourceW: 1184,
     sourceH: 792,
-    opening: { cx: 410, cy: 295, radius: 130 },
+    opening: { cx: 410, cy: 295, radius: USV_CLEAR_R },
   });
   const intactRef = useRef(null);
   const shatteredRef = useRef(null);
@@ -187,7 +223,7 @@ function ShatterViewport() {
         const opening = {
           cx: data.impact?.cx ?? 410,
           cy: data.impact?.cy ?? 295,
-          radius: data.openingClear ?? 130,
+          radius: Math.max(data.openingClear ?? 130, USV_CLEAR_R),
         };
         metaRef.current = {
           sourceW: data.sourceW,
@@ -328,5 +364,32 @@ function ShatterViewport() {
 }
 
 export function ObliterateShatterInline() {
-  return <ShatterViewport />;
+  const [busy, setBusy] = useState(false);
+
+  const onDownload = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const response = await fetch("/assets/obliterate-shard-data.json");
+      const data = await response.json();
+      const svg = buildShatterSvg(data, EXPORT_PROGRESS);
+      downloadShatterSvg(svg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="shatter-lead">
+      <ShatterViewport />
+      <button
+        type="button"
+        className="shatter-download"
+        onClick={onDownload}
+        disabled={busy}
+      >
+        {busy ? "Preparing…" : "Download"}
+      </button>
+    </div>
+  );
 }

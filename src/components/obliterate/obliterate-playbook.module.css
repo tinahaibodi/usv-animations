@@ -1,0 +1,225 @@
+.root {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+}
+
+.frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1210px;
+  height: 860px;
+  transform-origin: top left;
+  background: #fff;
+  font-family: Graphik, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #1f2321;
+}
+
+.frame span {
+  display: block;
+}
+
+.header {
+  position: absolute;
+  left: 55px;
+  top: 30px;
+  width: 650px;
+  z-index: 3;
+}
+
+.brandRow {
+  position: relative;
+  width: 650px;
+  height: 42px;
+}
+
+.usv {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: "Graphik Semibold", Graphik, "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 38px;
+  color: #34a853;
+}
+
+.brandRule {
+  position: absolute;
+  left: 85px;
+  top: 20px;
+  width: 20px;
+  height: 0;
+  border-top: 2px solid #eceae4;
+  transform: rotate(90deg);
+}
+
+.titleBlock {
+  position: absolute;
+  left: 0;
+  top: 58px;
+  width: 641px;
+}
+
+.title {
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 34px;
+  color: #1f2321;
+}
+
+.subtitle {
+  margin-top: 8px;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 22px;
+  color: #5c605e;
+}
+
+.divider {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 176px;
+  border-top: 1px solid #eceae4;
+  z-index: 3;
+}
+
+.gridLines {
+  position: absolute;
+  left: 0;
+  top: 220px;
+  width: 1210px;
+  height: 500px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.gridLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed #eceae4;
+}
+
+.row {
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  position: absolute;
+  left: 315px;
+  width: 528px;
+  height: 70px;
+  z-index: 2;
+}
+
+.rowLabel,
+.col {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 700ms var(--ease-out-cubic),
+    transform 700ms var(--ease-out-cubic);
+}
+
+.rowLabel[data-in="true"],
+.col[data-in="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+.rowLabel {
+  position: absolute;
+  left: 0;
+  top: 9px;
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 12px;
+  text-transform: uppercase;
+  color: #5c605e;
+}
+
+.col {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  height: 21px;
+  padding: 4px 10px;
+  background: #34a853;
+  border-radius: 4px;
+  font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 13px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.badgeInternet {
+  left: 233px;
+}
+
+.badgeAi {
+  left: 442px;
+}
+
+.cell {
+  position: absolute;
+  top: 32px;
+  width: 146px;
+  height: 38px;
+  background: #fafafa;
+  border: 1px solid #eceae4;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.cellLeft {
+  left: 0;
+}
+
+.cellInternet {
+  left: 191px;
+}
+
+.cellAi {
+  left: 382px;
+}
+
+.cellText {
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 13px;
+  color: #5c605e;
+  text-align: center;
+}
+
+.cellTextSmall {
+  font-size: 8px;
+  line-height: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowLabel,
+  .col {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

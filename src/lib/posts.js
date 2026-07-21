@@ -25,8 +25,12 @@ export const posts = [
         text: "The internet collapsed the cost of distribution and stripped the market power from the media companies that controlled it. AI does the same thing to expertise. As expert-level intelligence becomes abundant to anyone with an agent, the people, companies, and institutions whose power came from gatekeeping that expertise start to lose it. Instead of renting expertise from a gatekeeper, you can access and deploy it directly. No gatekeeper required. That shift, from the supply side to the demand side, is what actually restructures a market. We've already made a few investments that we think have the potential to obliterate the markets in which they exist, thanks to AI.",
       },
       {
-        type: "obliterate-diagram",
-        alt: "Obliterating Bottlenecks: Transforming existing markets",
+        type: "image",
+        src: "/assets/obliterate-case-studies.png",
+        alt: "Case Studies in Obliteration — Don't optimize scarcity. End it.",
+        width: 1024,
+        height: 727,
+        wide: true,
       },
       {
         type: "paragraph",
@@ -47,6 +51,10 @@ export const posts = [
       {
         type: "paragraph",
         text: "This is what we mean by obliterate.",
+      },
+      {
+        type: "obliterate-playbook",
+        alt: "The same playbook, one layer up — How AI mirrors the shift from scarcity to abundance",
       },
     ],
     media: {
