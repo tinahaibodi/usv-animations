@@ -229,12 +229,8 @@ a {
 
 .usv-article-media--lead {
   margin-top: calc(var(--lh) * 0.65);
-  width: min(100%, 1184px);
+  width: min(100%, 760px);
   overflow: visible;
-}
-
-.usv-article-media--wide {
-  width: min(100%, 1184px);
 }
 
 .usv-article-media--market-map {
@@ -376,21 +372,13 @@ a {
 
 .shatter-viewport {
   position: relative;
-  width: 1184px;
-  height: 474px;
-  max-width: 100%;
+  width: 100%;
+  height: auto;
   margin: 0;
   border: 0;
   overflow: hidden;
   background: #2a6840;
   aspect-ratio: 5 / 2;
-}
-
-@media (max-width: 1184px) {
-  .shatter-viewport {
-    width: 100%;
-    height: auto;
-  }
 }
 
 .shatter-viewport svg {

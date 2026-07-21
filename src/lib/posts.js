@@ -30,7 +30,6 @@ export const posts = [
         alt: "Case Studies in Obliteration — Don't optimize scarcity. End it.",
         width: 1024,
         height: 727,
-        wide: true,
       },
       {
         type: "paragraph",

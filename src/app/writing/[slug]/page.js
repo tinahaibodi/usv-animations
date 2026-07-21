@@ -46,11 +46,8 @@ function ArticleBody({ post }) {
           }
 
           if (block.type === "image") {
-            const mediaClassName = block.wide
-              ? "usv-article-media usv-article-media--wide"
-              : "usv-article-media";
             return (
-              <figure key={index} className={mediaClassName}>
+              <figure key={index} className="usv-article-media">
                 <ArticleImage
                   src={block.src}
                   alt={block.alt}
