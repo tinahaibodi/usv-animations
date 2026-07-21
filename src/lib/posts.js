@@ -28,7 +28,7 @@ export const posts = [
         type: "image",
         src: "/assets/obliterate-case-studies.png",
         alt: "Case Studies in Obliteration — Don't optimize scarcity. End it.",
-        width: 1024,
+        width: 976,
         height: 727,
       },
       {
